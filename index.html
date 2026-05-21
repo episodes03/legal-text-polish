@@ -28,7 +28,7 @@
     <p class="tip"> Powered by 讯飞星火AI | 免费智能润色 | 不构成法律意见</p>
 
 <script>
-// ============== 只改这里！填入你刚才复制的APIKey ==============
+// ============== 只改这里！填入你复制的讯飞APIKey ==============
 const API_KEY = "4f113877458ac739cd99a4c8c45112b5";
 // ==========================================================
 
@@ -46,10 +46,13 @@ async function startPolish() {
     res.innerText = "";
 
     try {
-        const response = await fetch("https://spark-api-open.xf-yun.com/v1/chat/completions", {
+        // 用免费CORS代理中转请求，绕过跨域限制
+        const proxyUrl = "https://corsproxy.io/?";
+        const targetUrl = "https://spark-api-open.xf-yun.com/v1/chat/completions";
+        const response = await fetch(proxyUrl + targetUrl, {
             method: "POST",
             headers: { 
-                "Authorization": `Bearer ${API_KEY}`, // 这里修正了格式
+                "Authorization": `Bearer ${API_KEY}`,
                 "Content-Type": "application/json" 
             },
             body: JSON.stringify({
