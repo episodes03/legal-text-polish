@@ -3,59 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>法律文本润色工具</title>
+    <title>AI法律文本润色工具</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: "Microsoft YaHei", sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
         h1 { color: #2c3e50; text-align: center; margin-bottom: 2rem; }
         textarea { width: 100%; height: 180px; padding: 1rem; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; resize: vertical; margin: 1rem 0; }
-        button { width: 100%; padding: 1rem; background: #1677ff; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
+        button { width: 100%; padding: 1rem; background: #0099ff; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
+        button:disabled { background: #95a5a6; cursor: not-allowed; }
         .result { margin-top: 2rem; }
         .result h3 { color: #2c3e50; margin-bottom: 1rem; }
-        .result-content { background: #f8f9fa; padding: 1rem; border-radius: 8px; min-height: 150px; white-space: pre-wrap; }
+        .result-content { background: #f8f9fa; padding: 1rem; border-radius: 8px; min-height: 150px; white-space: pre-wrap; line-height: 1.6; }
         .tip { color: #7f8c8d; font-size: 14px; margin-top: 1rem; text-align: center; }
     </style>
 </head>
 <body>
-    <h1>法律文本润色（法言法语优化）</h1>
-    <textarea id="userInput" placeholder="输入口语文本，如：王五借我5万没打借条，两年不还还拉黑我"></textarea>
-    <button onclick="runPolish()">一键润色为法言法语</button>
+    <h1>AI法律文本润色（法言法语优化）</h1>
+    <textarea id="inputText" placeholder="请输入任意口语化内容，AI会智能润色为专业法律文本"></textarea>
+    <button onclick="startPolish()" id="runBtn">一键AI润色</button>
     <div class="result">
         <h3>润色结果：</h3>
         <div id="resultContent" class="result-content"></div>
     </div>
-    <p class="tip">纯本地运行 | 免费无广告 | 不上传任何数据 | 仅文本优化</p>
+    <p class="tip"> Powered by 讯飞星火AI | 免费智能润色 | 不构成法律意见</p>
 
 <script>
-// 核心润色功能，点击就执行，无任何联网请求
-function runPolish() {
-    let text = document.getElementById("userInput").value.trim();
-    if(!text){ alert("请输入文本！"); return; }
+// ============== 只改这里！填入你刚才复制的APIKey ==============
+const API_KEY = "4f113877458ac739cd99a4c8c45112b5";
+// ==========================================================
+
+const SYSTEM_PROMPT = `你是专业法律文书专家，将用户的口语化文字，严谨改写为规范法言法语，保留全部事实，不添加主观判断，格式：【润色后文本】+内容`;
+
+async function startPolish() {
+    const text = document.getElementById("inputText").value.trim();
+    const btn = document.getElementById("runBtn");
+    const res = document.getElementById("resultContent");
     
-    // 法言法语替换规则（专业法律表述）
-    let replaceRules = [
-        [/借我/g, "向本人借款"],
-        [/没打借条/g, "未签订书面借款合同"],
-        [/不还/g, "未履行还款义务"],
-        [/拉黑/g, "拒绝沟通"],
-        [/微信转的/g, "通过微信转账完成交付"],
-        [/两年了/g, "借款期限已逾两年"],
-        [/一万块/g, "人民币1万元"],
-        [/五万块/g, "人民币5万元"],
-        [/十万块/g, "人民币10万元"],
-        [/欠钱/g, "拖欠借款"],
-        [/联系不上/g, "无法取得联络"],
-        [/违约/g, "已构成违约"]
-    ];
+    if(!text) { alert("请输入文本！"); return; }
+    
+    btn.disabled = true;
+    btn.innerText = "AI润色中...";
+    res.innerText = "";
 
-    let result = text;
-    replaceRules.forEach(rule => {
-        result = result.replace(rule[0], rule[1]);
-    });
+    try {
+        const response = await fetch("https://spark-api-open.xf-yun.com/v1/chat/completions", {
+            method: "POST",
+            headers: { 
+                "Authorization": `Bearer ${API_KEY}`, // 这里修正了格式
+                "Content-Type": "application/json" 
+            },
+            body: JSON.stringify({
+                model: "lite", // 免费可用的模型
+                messages: [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: text }
+                ],
+                temperature: 0.2
+            })
+        });
 
-    // 输出标准法律文本格式
-    document.getElementById("resultContent").innerText = 
-    "【润色后文本】\n" + result + "，该行为已违反诚实信用原则，符合法律规定的违约情形。";
+        const data = await response.json();
+        if (data.choices && data.choices[0].message) {
+            res.innerText = data.choices[0].message.content;
+        } else {
+            res.innerText = "润色失败，请检查APIKey是否正确！";
+            console.error("返回数据：", data);
+        }
+    } catch (e) {
+        res.innerText = "网络请求错误，请稍后重试！";
+        console.error("错误：", e);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "一键AI润色";
+    }
 }
 </script>
 </body>
