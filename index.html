@@ -1,10 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>我的第一个法律润色工具</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法律文本润色工具</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:微软雅黑,sans-serif}
+        body{max-width:800px;margin:30px auto;padding:0 20px}
+        h1{text-align:center;color:#2d3748;margin-bottom:20px}
+        textarea{width:100%;height:180px;padding:15px;border:1px solid #ddd;border-radius:8px;font-size:16px;resize:vertical;margin:10px 0}
+        button{width:100%;padding:15px;background:#0066cc;color:white;border:none;border-radius:8px;font-size:18px;cursor:pointer}
+        button:active{background:#0052a3}
+        .result{margin-top:20px}
+        .result h3{color:#2d3748;margin-bottom:10px}
+        .result-box{padding:15px;background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;min-height:150px;white-space:pre-wrap}
+        .tip{text-align:center;color:#718096;font-size:14px;margin-top:15px}
+    </style>
 </head>
 <body>
-    <h1>你好！我的工具上线啦 🎉</h1>
-    <p>我是一个超简单的测试页面，说明GitHub Pages已经能用了！</p>
+    <h1>法律文本润色（法言法语优化）</h1>
+    <textarea placeholder="请输入需要润色的口语化文字，例如：王五借我5万块，没打借条，两年不还还拉黑我"></textarea>
+    <button onclick="polishLegalText()">一键润色</button>
+    <div class="result">
+        <h3>润色结果</h3>
+        <div class="result-box" id="result"></div>
+    </div>
+    <p class="tip">纯本地运行，免费无广告，不上传数据 | 仅文本优化，不构成法律意见</p>
+
+    <script>
+        // 内置法律润色规则（无API、无密钥、直接用）
+        function polishLegalText() {
+            let text = document.getElementById('result').previousElementSibling.previousElementSibling.value.trim();
+            if (!text) { alert("请输入需要润色的文本！"); return; }
+
+            // 核心：口语转法言法语
+            let rules = [
+                /借我/g, '向本人借款',
+                /没打借条/g, '未签订书面借款合同',
+                /没还钱/g, '未履行还款义务',
+                /不还/g, '未偿还',
+                /拉黑/g, '拒绝沟通',
+                /手头紧/g, '因资金周转需要',
+                /微信转的/g, '通过微信转账方式交付',
+                /两年了/g, '已逾两年',
+                /一万块/g, '人民币1万元',
+                /五万块/g, '人民币5万元',
+                /十万块/g, '人民币10万元',
+                /欠钱/g, '拖欠款项',
+                /跑路/g, '下落不明',
+                /联系不上/g, '无法取得联系',
+                /违约/g, '构成违约',
+                /本金/g, '借款本金',
+                /利息/g, '借款利息'
+            ];
+
+            let result = text;
+            for (let i = 0; i < rules.length; i += 2) {
+                result = result.replace(rules[i], rules[i + 1]);
+            }
+
+            // 标准法律文书格式输出
+            result = `【润色后文本】\n本人与相对方成立民间借贷法律关系，相对方${result}，其行为已违反诚实信用原则，构成违约。`;
+            document.getElementById('result').innerText = result;
+        }
+    </script>
 </body>
 </html>
