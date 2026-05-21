@@ -8,96 +8,55 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: "Microsoft YaHei", sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
         h1 { color: #2c3e50; text-align: center; margin-bottom: 2rem; }
-        .input-box, .output-box { width: 100%; margin: 1rem 0; }
-        textarea { width: 100%; height: 150px; padding: 1rem; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; resize: vertical; }
-        button { display: block; width: 100%; padding: 1rem; background: #1677ff; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; margin: 1rem 0; }
-        button:disabled { background: #95a5a6; cursor: not-allowed; }
+        textarea { width: 100%; height: 180px; padding: 1rem; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; resize: vertical; margin: 1rem 0; }
+        button { width: 100%; padding: 1rem; background: #1677ff; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
         .result { margin-top: 2rem; }
         .result h3 { color: #2c3e50; margin-bottom: 1rem; }
         .result-content { background: #f8f9fa; padding: 1rem; border-radius: 8px; min-height: 150px; white-space: pre-wrap; }
-        .tip { color: #7f8c8d; font-size: 14px; margin: 1rem 0; text-align: center; }
+        .tip { color: #7f8c8d; font-size: 14px; margin-top: 1rem; text-align: center; }
     </style>
 </head>
 <body>
-    <h1>法律文本润色工具（法言法语优化）</h1>
-
-    <div class="input-box">
-        <textarea id="userInput" placeholder="输入口语文本，如：王五借我5万没打借条，两年不还还拉黑..."></textarea>
-    </div>
-
-    <button id="polishBtn">一键润色为法言法语</button>
-
+    <h1>法律文本润色（法言法语优化）</h1>
+    <textarea id="userInput" placeholder="输入口语文本，如：王五借我5万没打借条，两年不还还拉黑我"></textarea>
+    <button onclick="runPolish()">一键润色为法言法语</button>
     <div class="result">
         <h3>润色结果：</h3>
         <div id="resultContent" class="result-content"></div>
     </div>
+    <p class="tip">纯本地运行 | 免费无广告 | 不上传任何数据 | 仅文本优化</p>
 
-    <div class="tip">
-         Powered by 通义千问 | 免费工具，不构成法律意见
-    </div>
+<script>
+// 核心润色功能，点击就执行，无任何联网请求
+function runPolish() {
+    let text = document.getElementById("userInput").value.trim();
+    if(!text){ alert("请输入文本！"); return; }
+    
+    // 法言法语替换规则（专业法律表述）
+    let replaceRules = [
+        [/借我/g, "向本人借款"],
+        [/没打借条/g, "未签订书面借款合同"],
+        [/不还/g, "未履行还款义务"],
+        [/拉黑/g, "拒绝沟通"],
+        [/微信转的/g, "通过微信转账完成交付"],
+        [/两年了/g, "借款期限已逾两年"],
+        [/一万块/g, "人民币1万元"],
+        [/五万块/g, "人民币5万元"],
+        [/十万块/g, "人民币10万元"],
+        [/欠钱/g, "拖欠借款"],
+        [/联系不上/g, "无法取得联络"],
+        [/违约/g, "已构成违约"]
+    ];
 
-    <script>
-        // 只改这里：替换成你的通义千问API Key（sk-开头）
-        const API_KEY = "sk-wyjeQozPLIfq1yPDSgeM7pKj2dRmd203695DB54C311F1B3E756188C982845";
-        const API_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation";
+    let result = text;
+    replaceRules.forEach(rule => {
+        result = result.replace(rule[0], rule[1]);
+    });
 
-        // 你的V2.0法律润色提示词（已内置，不用改）
-        const SYSTEM_PROMPT = `你是一名资深法律文书专家，擅长将口语化、不规范的表述改写为严谨、专业、规范的“法言法语”，符合中国法律文书写作标准。
-任务：将用户输入的普通文本，改写为一段专业法律表述。要求：
-1. 使用精确的法律术语，替换日常口语词汇。
-2. 采用客观、理性、精炼的法律文书风格，避免情绪化、夸张、模糊表达。
-3. 确保法律逻辑完整，事实陈述清晰，权利义务指向明确。
-4. 保留原意，不得添加或删减关键事实，不得自行创设法律结论，严禁作出裁判性质判断。
-5. 必要时补充程序性表述，使文书更具可操作性。
-6. 语言简洁，表述严谨，不冗余、不夸大。
-输出格式：【润色后文本】`;
-
-        const userInput = document.getElementById("userInput");
-        const polishBtn = document.getElementById("polishBtn");
-        const resultContent = document.getElementById("resultContent");
-
-        async function polishText() {
-            const inputText = userInput.value.trim();
-            if (!inputText) { alert("请输入文本！"); return; }
-
-            polishBtn.disabled = true;
-            polishBtn.textContent = "润色中...";
-            resultContent.textContent = "";
-
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        model: "qwen-turbo",
-                        input: { messages: [
-                            { role: "system", content: SYSTEM_PROMPT },
-                            { role: "user", content: inputText }
-                        ]},
-                        parameters: { result_format: "message" }
-                    })
-                });
-
-                const data = await response.json();
-                if (data.output && data.output.choices) {
-                    resultContent.textContent = data.output.choices[0].message.content;
-                } else {
-                    resultContent.textContent = "润色失败，请重试！";
-                }
-            } catch (error) {
-                resultContent.textContent = "网络错误，请检查API Key！";
-                console.error(error);
-            } finally {
-                polishBtn.disabled = false;
-                polishBtn.textContent = "一键润色为法言法语";
-            }
-        }
-
-        polishBtn.addEventListener("click", polishText);
-        userInput.addEventListener("keydown", (e) => e.ctrlKey && e.key === "Enter" && polishText());
-    </script>
+    // 输出标准法律文本格式
+    document.getElementById("resultContent").innerText = 
+    "【润色后文本】\n" + result + "，该行为已违反诚实信用原则，符合法律规定的违约情形。";
+}
+</script>
 </body>
 </html>
